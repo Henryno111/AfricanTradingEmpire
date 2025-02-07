@@ -1,5 +1,9 @@
 ## 👋 Welcome Flow Developer!
 
+![image](https://github.com/user-attachments/assets/6ba9f95c-4e94-4799-9b4a-fe69aa937122)
+
+
+
 This project is a starting point for you to develop smart contracts on the Flow Blockchain. It comes with example contracts, scripts, transactions, and tests to help you get started.
 
 ## 🔨 Getting Started
