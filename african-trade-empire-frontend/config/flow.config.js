@@ -15,5 +15,8 @@ config({
   // Wallet Discovery
   "discovery.wallet": "https://fcl-discovery.onflow.org/testnet/authn",
   
-
+  "fcl.eventPollRate": 2500,
 })
+
+
+export default config
