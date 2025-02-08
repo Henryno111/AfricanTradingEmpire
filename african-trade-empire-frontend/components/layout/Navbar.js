@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Compass, LayoutDashboard, Route, Boxes } from 'lucide-react';
-import * as fcl from "@onflow/fcl";
-import config from "../../config/flow.config"
+import { useAuth } from '../../context/AuthContext';
+import { useClickAway } from 'react-use';
+import * as fcl from "@onflow/fcl"; // Import FCL
+import "../../config/flow.config"; // Ensure Flow config is loaded
 
 const WalletButton = ({ wallet, onSelect, isLoading, loadingWallet }) => (
   <button
@@ -28,22 +30,21 @@ const WalletButton = ({ wallet, onSelect, isLoading, loadingWallet }) => (
 );
 
 export default function Navbar() {
-  const [user, setUser] = useState({ loggedIn: false, addr: null });
+  const { user, isLoading: authLoading, connectWallet, disconnectWallet } = useAuth();
   const [showWalletModal, setShowWalletModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [loadingWallet, setLoadingWallet] = useState(null);
   const [activeLink, setActiveLink] = useState('');
   const [toast, setToast] = useState(null);
+  const modalRef = useRef(null);
 
-  // Subscribe to user authentication changes
-  useEffect(() => {
-    fcl.currentUser.subscribe(setUser);
-  }, []);
+  useClickAway(modalRef, () => {
+    if (showWalletModal) setShowWalletModal(false);
+  });
 
   const wallets = [
-    { id: 'flow', name: 'Flow Wallet', icon: 'flow.webp' },
-    { id: 'blocto', name: 'Blocto Wallet', icon: 'blocto.png' },
-    { id: 'dapper', name: 'Dapper Wallet', icon: 'https://assets.website-files.com/60f01680d1547eabcef8f63e/6141c4db4256056e0416e2d9_Dapper_Favicon_500x500.png' }
+    { id: 'flow', name: 'Flow Wallet', icon: '/flow.webp' },
+    { id: 'blocto', name: 'Blocto Wallet', icon: '/blocto.png' },
+    { id: 'dapper', name: 'Dapper Wallet', icon: '/dapper.png' }
   ];
 
   const navLinks = [
@@ -60,27 +61,24 @@ export default function Navbar() {
 
   const handleWalletSelect = async (walletId) => {
     try {
-      setIsLoading(true);
       setLoadingWallet(walletId);
+      
+      // Ensure FCL Discovery Wallet is correctly set
+      fcl.config().put("discovery.wallet", "https://fcl-discovery.onflow.org/testnet/authn");
 
-      // Authenticate with Flow
-      await fcl.authenticate({
-        appIdentifier: "African Trade Empire",
-        serviceName: "African Trade Empire",
-        includeMethods: ["TESTNET"], // or ["MAINNET"] for production
-      });
-
+      // Connect Wallet
+      await fcl.authenticate();
+      
       setShowWalletModal(false);
       showToast('Wallet connected successfully!');
     } catch (error) {
       showToast(`Failed to connect wallet: ${error.message}`, 'error');
     } finally {
-      setIsLoading(false);
       setLoadingWallet(null);
     }
   };
 
-  const disconnect = async () => {
+  const handleDisconnect = async () => {
     try {
       await fcl.unauthenticate();
       showToast('Wallet disconnected successfully!');
@@ -88,18 +86,6 @@ export default function Navbar() {
       showToast(`Failed to disconnect: ${error.message}`, 'error');
     }
   };
-
-  // Close modal when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (showWalletModal && !e.target.closest('.modal-content')) {
-        setShowWalletModal(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showWalletModal]);
 
   return (
     <>
@@ -115,7 +101,7 @@ export default function Navbar() {
                 whileHover={{ scale: 1.05 }}
                 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400"
               >
-                Africa Trade Empire
+                African Trade Empire
               </motion.span>
             </Link>
 
@@ -159,7 +145,7 @@ export default function Navbar() {
               >
                 {user.loggedIn ? (
                   <button
-                    onClick={disconnect}
+                    onClick={handleDisconnect}
                     className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium flex items-center gap-2 transition-all duration-300"
                   >
                     <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
@@ -185,25 +171,22 @@ export default function Navbar() {
         {showWalletModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
             <motion.div
+              ref={modalRef}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="modal-content relative w-full max-w-md mx-4 bg-gradient-to-br from-gray-900/95 to-gray-800/95 rounded-xl border border-purple-500/20 shadow-xl"
+              className="modal-content relative w-full max-w-md mx-4 bg-gray-900/95 rounded-xl border border-purple-500/20 shadow-xl"
             >
               <div className="p-6">
-                <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400 mb-2">
-                  Connect Your Wallet
-                </h2>
-                <p className="text-gray-400 mb-6">
-                  Choose your preferred wallet to connect to African Trade Empire
-                </p>
+                <h2 className="text-xl font-bold text-white mb-2">Connect Your Wallet</h2>
+                <p className="text-gray-400 mb-6">Choose your preferred wallet:</p>
                 <div className="space-y-2">
                   {wallets.map((wallet) => (
                     <WalletButton
                       key={wallet.id}
                       wallet={wallet}
                       onSelect={handleWalletSelect}
-                      isLoading={isLoading}
+                      isLoading={authLoading}
                       loadingWallet={loadingWallet}
                     />
                   ))}
@@ -211,22 +194,6 @@ export default function Navbar() {
               </div>
             </motion.div>
           </div>
-        )}
-      </AnimatePresence>
-
-      {/* Toast Notifications */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className={`fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg ${
-              toast.type === 'error' ? 'bg-red-500' : 'bg-green-500'
-            } text-white z-50`}
-          >
-            {toast.message}
-          </motion.div>
         )}
       </AnimatePresence>
     </>
