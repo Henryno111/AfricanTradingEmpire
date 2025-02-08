@@ -3,11 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from "framer-motion";
-import { Wallet, Compass, LayoutDashboard, Route, Boxes } from 'lucide-react';
+import { Wallet, Compass, LayoutDashboard, Route, Boxes, Gamepad as GamepadIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useClickAway } from 'react-use';
 import * as fcl from "@onflow/fcl";
 import config from "../../config/flow.config"
+import Image from 'next/image';
 
 const WalletButton = ({ wallet, onSelect, isLoading, loadingWallet }) => (
   <button
@@ -51,7 +52,7 @@ export default function Navbar() {
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/marketplace', label: 'Marketplace', icon: Compass },
     { href: '/trade', label: 'Trade Routes', icon: Route },
-    { href: '/inventory', label: 'Inventory', icon: Boxes }
+    { href: '/play', label: 'Play Game', icon: GamepadIcon }
   ];
 
   const showToast = (message, type = 'success') => {
@@ -96,12 +97,13 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16">
+          <Image src="/appIcon.jpg" width={40} height={40} alt="African Trade Empire" />
             <Link href="/" className="flex items-center">
               <motion.span 
                 whileHover={{ scale: 1.05 }}
                 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400"
               >
-                African Trade Empire
+                A.T Empire
               </motion.span>
             </Link>
 
