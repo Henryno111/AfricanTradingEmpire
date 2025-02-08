@@ -4,6 +4,9 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { Compass, LayoutDashboard, Route } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { WalletButton } from '@/components/layout/Navbar';
+import * as fcl from "@onflow/fcl";
+
 
 export default function Home() {
   // Particle effect for background
@@ -86,7 +89,7 @@ export default function Home() {
       <canvas id="particles" className="absolute inset-0 pointer-events-none" />
       
       <div className="relative z-10">
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="max-w-7xl mx-auto px-6 py-12 mt-11">
           <motion.div
             initial="hidden"
             animate="visible"
@@ -158,11 +161,12 @@ export default function Home() {
               className="inline-block"
             >
               <Link 
-                href="/get-started" 
+                href=''
                 className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg font-bold text-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-amber-500/25"
               >
                 Begin Your Journey
               </Link>
+              
             </motion.div>
           </motion.div>
         </div>

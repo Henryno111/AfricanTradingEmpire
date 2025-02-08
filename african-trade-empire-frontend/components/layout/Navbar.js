@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Wallet, Compass, LayoutDashboard, Route, Boxes } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useClickAway } from 'react-use';
-import * as fcl from "@onflow/fcl"; // Import FCL
-import "../../config/flow.config"; // Ensure Flow config is loaded
+import * as fcl from "@onflow/fcl";
+import config from "../../config/flow.config"
 
 const WalletButton = ({ wallet, onSelect, isLoading, loadingWallet }) => (
   <button
@@ -199,3 +199,6 @@ export default function Navbar() {
     </>
   );
 }
+
+
+export { WalletButton };
