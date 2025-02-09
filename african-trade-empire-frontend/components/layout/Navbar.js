@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from "framer-motion";
-import { Wallet, Compass, LayoutDashboard, Route, Boxes, Gamepad as GamepadIcon } from 'lucide-react';
+import { Wallet, Compass, LayoutDashboard, Route, Menu, X, Gamepad as GamepadIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useClickAway } from 'react-use';
 import * as fcl from "@onflow/fcl";
-import config from "../../config/flow.config"
+import config from "../../config/flow.config";
 import Image from 'next/image';
 
 const WalletButton = ({ wallet, onSelect, isLoading, loadingWallet }) => (
@@ -33,13 +33,19 @@ const WalletButton = ({ wallet, onSelect, isLoading, loadingWallet }) => (
 export default function Navbar() {
   const { user, isLoading: authLoading, connectWallet, disconnectWallet } = useAuth();
   const [showWalletModal, setShowWalletModal] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [loadingWallet, setLoadingWallet] = useState(null);
   const [activeLink, setActiveLink] = useState('');
   const [toast, setToast] = useState(null);
   const modalRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   useClickAway(modalRef, () => {
     if (showWalletModal) setShowWalletModal(false);
+  });
+
+  useClickAway(mobileMenuRef, () => {
+    if (showMobileMenu) setShowMobileMenu(false);
   });
 
   const wallets = [
@@ -63,13 +69,8 @@ export default function Navbar() {
   const handleWalletSelect = async (walletId) => {
     try {
       setLoadingWallet(walletId);
-      
-      // Ensure FCL Discovery Wallet is correctly set
       fcl.config().put("discovery.wallet", "https://fcl-discovery.onflow.org/testnet/authn");
-
-      // Connect Wallet
       await fcl.authenticate();
-      
       setShowWalletModal(false);
       showToast('Wallet connected successfully!');
     } catch (error) {
@@ -95,20 +96,22 @@ export default function Navbar() {
         animate={{ y: 0 }}
         className="fixed w-full z-50 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-md border-b border-white/10"
       >
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between h-16">
-          <Image src="/appIcon.jpg" width={40} height={40} alt="African Trade Empire" />
-            <Link href="/" className="flex items-center">
-              <motion.span 
-                whileHover={{ scale: 1.05 }}
-                className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400"
-              >
-                A.T Empire
-              </motion.span>
-            </Link>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex items-center gap-3">
+              <Image src="/appIcon.jpg" width={40} height={40} alt="African Trade Empire" className="rounded-full" />
+              <Link href="/" className="flex items-center">
+                <motion.span 
+                  whileHover={{ scale: 1.05 }}
+                  className="text-xl sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400"
+                >
+                  A.T Empire
+                </motion.span>
+              </Link>
+            </div>
 
-            <div className="flex items-center gap-6">
-              <div className="hidden md:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-6">
+              <div className="flex items-center gap-2">
                 {navLinks.map(({ href, label, icon: Icon }) => (
                   <Link key={href} href={href}>
                     <motion.div
@@ -148,36 +151,104 @@ export default function Navbar() {
                 {user.loggedIn ? (
                   <button
                     onClick={handleDisconnect}
-                    className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium flex items-center gap-2 transition-all duration-300"
+                    className="px-4 sm:px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium flex items-center gap-2 transition-all duration-300"
                   >
                     <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                    {user.addr?.substring(0, 6)}...{user.addr?.substring(user.addr.length - 4)}
+                    <span className="hidden sm:inline">{user.addr?.substring(0, 6)}...{user.addr?.substring(user.addr.length - 4)}</span>
+                    <span className="sm:hidden">{user.addr?.substring(0, 4)}...</span>
                   </button>
                 ) : (
                   <button
                     onClick={() => setShowWalletModal(true)}
-                    className="px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium flex items-center gap-2 transition-all duration-300"
+                    className="px-4 sm:px-6 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium flex items-center gap-2 transition-all duration-300"
                   >
                     <Wallet className="w-4 h-4" />
-                    Connect Wallet
+                    <span>Connect Wallet</span>
                   </button>
                 )}
               </motion.div>
             </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden flex items-center">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+              >
+                {showMobileMenu ? (
+                  <X className="w-6 h-6 text-white" />
+                ) : (
+                  <Menu className="w-6 h-6 text-white" />
+                )}
+              </motion.button>
+            </div>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {showMobileMenu && (
+            <motion.div
+              ref={mobileMenuRef}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t border-white/10"
+            >
+              <div className="px-4 py-4 space-y-3">
+                {navLinks.map(({ href, label, icon: Icon }) => (
+                  <Link key={href} href={href} onClick={() => setShowMobileMenu(false)}>
+                    <motion.div
+                      whileTap={{ scale: 0.95 }}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors"
+                    >
+                      <Icon className="w-5 h-5 text-white/70" />
+                      <span className="text-white/70">{label}</span>
+                    </motion.div>
+                  </Link>
+                ))}
+                <div className="pt-2">
+                  {user.loggedIn ? (
+                    <button
+                      onClick={() => {
+                        handleDisconnect();
+                        setShowMobileMenu(false);
+                      }}
+                      className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium flex items-center justify-center gap-2 transition-all duration-300"
+                    >
+                      <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                      {user.addr?.substring(0, 6)}...{user.addr?.substring(user.addr.length - 4)}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setShowWalletModal(true);
+                        setShowMobileMenu(false);
+                      }}
+                      className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium flex items-center justify-center gap-2 transition-all duration-300"
+                    >
+                      <Wallet className="w-4 h-4" />
+                      Connect Wallet
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.nav>
 
       {/* Wallet Modal */}
       <AnimatePresence>
         {showWalletModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <motion.div
               ref={modalRef}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="modal-content relative w-full max-w-md mx-4 bg-gray-900/95 rounded-xl border border-purple-500/20 shadow-xl"
+              className="modal-content relative w-full max-w-md bg-gray-900/95 rounded-xl border border-purple-500/20 shadow-xl"
             >
               <div className="p-6">
                 <h2 className="text-xl font-bold text-white mb-2">Connect Your Wallet</h2>
@@ -201,6 +272,5 @@ export default function Navbar() {
     </>
   );
 }
-
 
 export { WalletButton };
