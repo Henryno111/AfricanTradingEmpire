@@ -11,11 +11,11 @@ export default function Dashboard() {
  const { user } = useAuth()
  const router = useRouter()
 
- useEffect(() => {
-   if (!user.loggedIn) {
-     router.push('/')
-   }
- }, [user, router])
+//  useEffect(() => {
+//    if (!user.loggedIn) {
+//      router.push('/')
+//    }
+//  }, [user, router])
 
  const stats = [
    {
